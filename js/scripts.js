@@ -1,7 +1,11 @@
 const gallery = $("#gallery");
 let profiles =[];
 let cards =[];
-let modalCloseButton ='';
+let profileIndex = 0;
+const phoneRegEx=/^(\d{3})(\d{3})(\d{1,})/;
+const onlyNumbers=/\D+/g;
+const birthdayRegEx= /^(\d{4})(\d{2})(\d{2})(\d+)/;
+
 function profileText(data){
     const person= data.results[0];
     const profileToAppend =`<div class="card">
@@ -33,47 +37,90 @@ $( document ).ajaxStop(function() {
     cards = $(".card");
     showModal();
   });
-
 function showModal(){
-      const phoneRegEx=/^(\d{3})(\d{3})(\d{1,})/;
-      const onlyNumbers=/\D+/g;
-      const birthdayRegEx= /^(\d{4})(\d{2})(\d{2})(\d+)/;
+      
     for(let i=0;i<cards.length;i++){
-        const result=profiles[i].results[0];
-        const number =result.phone.replace(onlyNumbers,"");
-        const phonenumber =number.replace(phoneRegEx," ($1) $2-$3");
-        const birthdayFormatted= result.dob.date.replace(onlyNumbers,"").replace(birthdayRegEx,"$2/$3/$1");
-        cards[i].addEventListener('click',(e)=>{
-            const modalWindow=`<div class="modal-container">
-            <div class="modal">
-                <button type="button" id="modal-close-btn" class="modal-close-btn"><strong>X</strong></button>
-                <div class="modal-info-container">
-                    <img class="modal-img" src="${result.picture.medium}" alt="profile picture">
-                    <h3 id="name" class="modal-name cap">${result.name.first} ${profiles[i].results[0].name.last}</h3>
-                    <p class="modal-text">${result.email}</p>
-                    <p class="modal-text cap">${result.location.city}</p>
-                    <hr>
-                    <p class="modal-text">${phonenumber}</p>
-                    <p class="modal-text">${result.location.street.name} ${result.location.street.number}, ${result.location.city}, ${result.location.postcode}</p>
-                    <p class="modal-text">Birthday: ${birthdayFormatted}</p>
-                </div>
-            </div>
-            <div class="modal-btn-container">
-                <button type="button" id="modal-prev" class="modal-prev btn">Prev</button>
-                <button type="button" id="modal-next" class="modal-next btn">Next</button>
-            </div>
-        </div>`;
-        $(modalWindow).insertAfter(gallery);
-        modalCloseButton = document.getElementById('modal-close-btn');
-        modalCloseButton.addEventListener('click',(e)=>{
-        const bodyDiv =modalCloseButton.parentNode.parentNode.parentNode;
-            bodyDiv.removeChild(bodyDiv.children[2]);
-         })
+        
+        cards[i].addEventListener('click',()=>{
+            modalText(i);
+            profileIndex = i;
+            //modalButtonsFunctions(i);
         })
     }
- }
- 
- function createModal(person){
-     
+
  }
 
+//  function modalButtonsFunctions(i){
+//     let modalCloseButton = document.getElementById('modal-close-btn');
+ 
+//     let bodyDiv =modalCloseButton.parentNode.parentNode.parentNode;
+//    const prevButton = document.getElementById('modal-prev');
+//     const nextButton = document.getElementById('modal-next');
+//     nextButton.addEventListener('click',()=>{
+//         bodyDiv.removeChild(bodyDiv.children[2]);
+//         modalText(i+1);
+//     })
+//     prevButton.addEventListener('click',()=>{
+//         bodyDiv.removeChild(bodyDiv.children[2]);
+//         modalText(i-1);
+//     })
+
+//     modalCloseButton.addEventListener('click',(e)=>{
+//   //  bodyDiv.removeChild(bodyDiv.children[2]);
+//     console.log('botao');
+//     }) 
+//  }
+
+ function modalText(i){
+    const result=profiles[i].results[0];
+    const number =result.phone.replace(onlyNumbers,"");
+    const phonenumber =number.replace(phoneRegEx," ($1) $2-$3");
+    const birthdayFormatted= result.dob.date.replace(onlyNumbers,"").replace(birthdayRegEx,"$2/$3/$1");
+    const modalWindow=`<div class="modal-container">
+        <div class="modal">
+            <button type="button" id="modal-close-btn" class="modal-close-btn"><strong>X</strong></button>
+            <div class="modal-info-container">
+                <img class="modal-img" src="${result.picture.medium}" alt="profile picture">
+                <h3 id="name" class="modal-name cap">${result.name.first} ${profiles[i].results[0].name.last}</h3>
+                <p class="modal-text">${result.email}</p>
+                <p class="modal-text cap">${result.location.city}</p>
+                <hr>
+                <p class="modal-text">${phonenumber}</p>
+                <p class="modal-text">${result.location.street.name} ${result.location.street.number}, ${result.location.city}, ${result.location.postcode}</p>
+                <p class="modal-text">Birthday: ${birthdayFormatted}</p>
+            </div>
+        </div>
+        <div class="modal-btn-container">
+            <button type="button" id="modal-prev" class="modal-prev btn">Prev</button>
+            <button type="button" id="modal-next" class="modal-next btn">Next</button>
+        </div>
+    </div>`;
+    $(modalWindow).insertAfter(gallery);
+ }
+
+ document.addEventListener('click',(e)=>{
+
+     let modalCloseButton = document.getElementById('modal-close-btn');
+     let bodyDiv =modalCloseButton.parentNode.parentNode.parentNode;
+
+     if (e.target.id === 'modal-close-btn' || e.target.parentNode.id === 'modal-close-btn'){
+        bodyDiv.removeChild(bodyDiv.children[2]);
+     }
+     else if(e.target.id === 'modal-next'){
+        bodyDiv.removeChild(bodyDiv.children[2]);
+        profileIndex++;
+        if(profileIndex>profiles.length-1){
+            profileIndex=0;
+        }
+        modalText(profileIndex);
+
+     }
+     else if(e.target.id === 'modal-prev'){
+        bodyDiv.removeChild(bodyDiv.children[2]);
+        profileIndex--;
+        if(profileIndex<0){
+            profileIndex = profiles.length-1;
+        }
+        modalText(profileIndex);
+     }
+ })
